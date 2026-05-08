@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Print a unified diff between two .uasset files after converting them to JSON.
+Print a unified diff between two UE4 package files after converting them to JSON.
 """
 
 from __future__ import annotations
@@ -93,15 +93,15 @@ def diff_uassets(
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Diff two .uasset files by comparing their uasset_to_text JSON.",
+        description="Diff two .uasset or .umap files by comparing their uasset_to_text JSON.",
     )
     parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {TOOL_VERSION}",
     )
-    parser.add_argument("left", help="First .uasset file")
-    parser.add_argument("right", help="Second .uasset file")
+    parser.add_argument("left", help="First .uasset or .umap file")
+    parser.add_argument("right", help="Second .uasset or .umap file")
     parser.add_argument(
         "--keep-paths",
         action="store_true",

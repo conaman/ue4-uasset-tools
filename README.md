@@ -3,25 +3,29 @@
 Current release: `2026-05-08`
 
 `ue4-uasset-tools` is a small standalone Python toolkit for reviewing Unreal
-Engine 4.27 `.uasset` metadata and UMG widget changes as readable JSON.
+Engine 4.27 `.uasset`/`.umap` metadata, UMG widget changes, and map export
+changes as readable JSON.
 
 It can:
 
-- Convert a `.uasset` file to readable metadata JSON.
+- Convert a `.uasset` or `.umap` file to readable metadata JSON.
 - Extract UMG review properties such as slot padding, layout data, alignment,
   visibility, colors, widget styling, button/slider state, and custom primitive
   variables.
+- Extract readable `.umap` export properties such as actor labels, transforms,
+  object references, component values, and custom primitive variables when
+  Unreal saved them as tagged properties.
 - Print a compact UMG WidgetTree hierarchy with widget names and types.
-- Print 2-way and 3-way metadata JSON diffs for `.uasset` files.
+- Print 2-way and 3-way metadata JSON diffs for `.uasset` and `.umap` files.
 - Open Perforce P4Merge on generated metadata JSON files for visual comparison.
 
-The parser reads UE4.27 package metadata plus supported UMG tagged property
+The parser reads UE4.27 package metadata plus supported UMG/map tagged property
 values. It does not link against Unreal Engine.
 
 ## Requirements
 
 - Python 3.9 or newer.
-- A UE4 `.uasset` file.
+- A UE4 `.uasset` or `.umap` file.
 - Perforce P4Merge is optional and only needed for `uasset_p4merge.py`.
 
 No third-party Python packages are required.
@@ -38,7 +42,9 @@ No third-party Python packages are required.
   font, color, shadow, wrapping, and justification.
 - See custom primitive fields serialized on widgets without maintaining a
   property-name filter.
-- Compare binary `.uasset` metadata without launching Unreal Editor.
+- Review `.umap` changes made by Unreal MCP or another LLM workflow before
+  accepting the saved level.
+- Compare binary `.uasset`/`.umap` metadata without launching Unreal Editor.
 - Inspect imports, exports, dependencies, and soft package references.
 - Use P4Merge as a visual JSON diff viewer for UE4 assets.
 
@@ -46,10 +52,10 @@ No third-party Python packages are required.
 
 | Tool | Purpose |
 | --- | --- |
-| `uasset_to_text.py` | Convert `.uasset` to metadata JSON. |
+| `uasset_to_text.py` | Convert `.uasset` or `.umap` to metadata JSON. |
 | `uasset_to_text.bat` | Windows wrapper for `uasset_to_text.py`. |
 | `uasset_umg_summary.py` | Print a UMG WidgetTree hierarchy from a `.uasset` or metadata JSON file. |
-| `uasset_diff.py` | Print a unified 2-way diff between two `.uasset` files. |
+| `uasset_diff.py` | Print a unified 2-way diff between two `.uasset` or `.umap` files. |
 | `uasset_diff3.py` | Print a structured 3-way diff report. |
 | `uasset_p4merge.py` | Convert `.uasset` files to metadata JSON, then open P4Merge. |
 
@@ -62,6 +68,12 @@ Convert a `.uasset` to metadata JSON:
 
 ```bash
 ./uasset_to_text.py /path/to/Asset.uasset
+```
+
+Convert a `.umap` to metadata JSON:
+
+```bash
+./uasset_to_text.py /path/to/Level.umap
 ```
 
 On Windows:
@@ -82,10 +94,11 @@ On Windows:
 uasset_umg_summary.bat "C:\path\to\Widget.uasset"
 ```
 
-Compare two `.uasset` files as metadata JSON:
+Compare two `.uasset` or `.umap` files as metadata JSON:
 
 ```bash
 ./uasset_diff.py /path/to/Old.uasset /path/to/New.uasset
+./uasset_diff.py /path/to/Before.umap /path/to/After.umap
 ```
 
 Open P4Merge on generated metadata JSON:
@@ -114,9 +127,9 @@ Sample outputs generated from a UE4.27 UMG widget asset are available in
 
 ### uasset_to_text.py
 
-`uasset_to_text.py` writes parsed metadata as readable JSON. The output is for
-inspection, summaries, and diff workflows. It is not a `.uasset` editing format
-and cannot be converted back into a modified `.uasset` file.
+`uasset_to_text.py` writes parsed package metadata as readable JSON. The output
+is for inspection, summaries, and diff workflows. It is not an editing format
+and cannot be converted back into a modified `.uasset` or `.umap` file.
 
 Default output path is `./Asset.json` in the current directory:
 
@@ -132,6 +145,7 @@ Common options:
 ./uasset_to_text.py /path/to/Asset.uasset --indent 4
 ./uasset_to_text.py /path/to/Asset.uasset --compact
 ./uasset_to_text.py /path/to/Asset.uasset --no-review-properties
+./uasset_to_text.py /path/to/Level.umap --no-map-properties
 ```
 
 On Windows, use the batch wrapper from the tool folder. Extra options are passed
@@ -141,6 +155,7 @@ through to Python:
 uasset_to_text.bat "C:\path\to\Asset.uasset"
 uasset_to_text.bat "C:\path\to\Asset.uasset" -o "C:\temp\Asset.json"
 uasset_to_text.bat "C:\path\to\Asset.uasset" --exports-only
+uasset_to_text.bat "C:\path\to\Level.umap" -o "C:\temp\Level.json"
 ```
 
 Print a compact export list:
@@ -467,8 +482,8 @@ The metadata object can include:
 - `summary`: package file summary fields and version data.
 - `imports`: imported object table with Name references expanded to strings.
 - `exports`: exported object table with Name references expanded to strings and
-  `review_properties` on supported UMG exports when readable payload data is
-  found.
+  `review_properties` on supported UMG exports or `map_properties` on `.umap`
+  exports when readable payload data is found.
 - `depends`: export dependency map.
 - `soft_package_references`: soft package references.
 - `preload_dependencies`: cooked preload dependency indexes.
@@ -500,9 +515,24 @@ When a property is present but its value is not decoded yet, it is kept as
 `_unparsed` with `_raw_hex`. That means the diff can still show that a value
 changed, even when this tool cannot name every field inside that value.
 
+## UMAP Review Coverage
+
+When the input path ends in `.umap`, `map_properties` is emitted for exports
+whose payload starts with a readable tagged property stream. This is intended
+for before/after reviews when an LLM or Unreal MCP saves a level.
+
+Common changes that can appear include actor labels, relative location,
+rotation, scale, object references, component settings, visibility/state flags,
+numeric values, strings, names, enums, and custom primitive fields.
+
+Some map exports use native or custom serializers before their tagged
+properties. Those exports may only show metadata changes, or may keep an
+unsupported value as `_unparsed` with `_raw_hex` when the property tag itself
+can be identified.
+
 ## Limitations
 
-This tool focuses on package metadata tables, supported UMG tagged property
+This tool focuses on package metadata tables, supported UMG/map tagged property
 values, and visual review diffs. It is not a full UObject property serializer.
 
 Unsupported custom serializers are marked as `_unparsed` with `_raw_hex`

@@ -775,6 +775,10 @@ def is_data_table_export(export: dict[str, Any]) -> bool:
     return export.get("class") in DATA_TABLE_CLASS_PATHS
 
 
+def is_umap_path(path: str) -> bool:
+    return os.path.splitext(path)[1].lower() == ".umap"
+
+
 def read_property_tag(
     reader: Reader,
     names: list[str],
@@ -1228,6 +1232,24 @@ def extract_review_properties_from_payload(
     imports: list[dict[str, Any]],
     exports: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    return extract_tagged_properties_from_payload(
+        payload,
+        names,
+        version,
+        imports,
+        exports,
+    )
+
+
+def extract_tagged_properties_from_payload(
+    payload: bytes,
+    names: list[str],
+    version: int,
+    imports: list[dict[str, Any]],
+    exports: list[dict[str, Any]],
+    *,
+    require_terminator: bool = False,
+) -> dict[str, Any]:
     reader = Reader(payload, "<export-payload>")
     return read_tagged_review_properties(
         reader,
@@ -1236,6 +1258,7 @@ def extract_review_properties_from_payload(
         imports,
         exports,
         len(payload),
+        require_terminator=require_terminator,
     )
 
 
@@ -1338,9 +1361,31 @@ def add_umg_review_properties(
     imports: list[dict[str, Any]],
     exports: list[dict[str, Any]],
 ) -> None:
+    add_tagged_export_properties(
+        data,
+        summary,
+        names,
+        imports,
+        exports,
+        property_key="review_properties",
+        candidate=is_umg_export,
+    )
+
+
+def add_tagged_export_properties(
+    data: bytes,
+    summary: dict[str, Any],
+    names: list[str],
+    imports: list[dict[str, Any]],
+    exports: list[dict[str, Any]],
+    *,
+    property_key: str,
+    candidate: Callable[[dict[str, Any]], bool],
+    require_terminator: bool = False,
+) -> None:
     version = summary["effective_file_version_ue4"]
     for export in exports:
-        if not is_umg_export(export):
+        if not candidate(export):
             continue
         offset = export["serial_offset"]
         size = export["serial_size"]
@@ -1348,17 +1393,37 @@ def add_umg_review_properties(
             continue
         payload = data[offset : offset + size]
         try:
-            review_properties = extract_review_properties_from_payload(
+            properties = extract_tagged_properties_from_payload(
                 payload,
                 names,
                 version,
                 imports,
                 exports,
+                require_terminator=require_terminator,
             )
         except (UAssetError, struct.error, UnicodeDecodeError):
             continue
-        if review_properties:
-            export["review_properties"] = review_properties
+        if properties:
+            export[property_key] = properties
+
+
+def add_map_review_properties(
+    data: bytes,
+    summary: dict[str, Any],
+    names: list[str],
+    imports: list[dict[str, Any]],
+    exports: list[dict[str, Any]],
+) -> None:
+    add_tagged_export_properties(
+        data,
+        summary,
+        names,
+        imports,
+        exports,
+        property_key="map_properties",
+        candidate=lambda _export: True,
+        require_terminator=True,
+    )
 
 
 def add_data_table_review_data(
@@ -1475,7 +1540,11 @@ def parse_uasset(
     include_export_data: bool,
     preview_bytes: int,
     include_review_properties: bool = True,
+    include_map_properties: bool | None = None,
 ) -> dict[str, Any]:
+    if include_map_properties is None:
+        include_map_properties = is_umap_path(path)
+
     with open(path, "rb") as file:
         data = file.read()
     reader = Reader(data, path)
@@ -1489,6 +1558,8 @@ def parse_uasset(
     if include_review_properties:
         add_umg_review_properties(data, summary, names, imports, exports)
         add_data_table_review_data(data, summary, names, imports, exports)
+    if include_map_properties:
+        add_map_review_properties(data, summary, names, imports, exports)
 
     result: dict[str, Any] = {
         "file": {
@@ -1532,14 +1603,14 @@ def default_json_path(path: str) -> str:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Convert a UE4.27 .uasset package to readable metadata JSON.",
+        description="Convert a UE4.27 .uasset or .umap package to readable metadata JSON.",
     )
     parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {TOOL_VERSION}",
     )
-    parser.add_argument("uasset", help="Path to a .uasset file")
+    parser.add_argument("uasset", help="Path to a .uasset or .umap file")
     parser.add_argument(
         "-o",
         "--output",
@@ -1558,7 +1629,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--no-review-properties",
         action="store_true",
-        help="Do not include best-effort UMG/DataTable review data parsed from export payloads.",
+        help="Do not include best-effort UMG review data parsed from export payloads.",
+    )
+    parser.add_argument(
+        "--no-map-properties",
+        action="store_true",
+        help="Do not include best-effort .umap export properties parsed from map export payloads.",
     )
     parser.add_argument(
         "--exports-only",
@@ -1599,6 +1675,7 @@ def main(argv: list[str]) -> int:
             include_export_data=args.include_export_data,
             preview_bytes=max(0, args.bytes),
             include_review_properties=not args.no_review_properties,
+            include_map_properties=False if args.no_map_properties else None,
         )
         if args.exports_only:
             result = export_summary(result)

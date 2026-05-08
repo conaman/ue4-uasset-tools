@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Print a 3-way diff report for .uasset files after converting them to JSON.
+Print a 3-way diff report for UE4 package files after converting them to JSON.
 """
 
 from __future__ import annotations
@@ -220,16 +220,16 @@ def exit_status(report: dict[str, Any]) -> int:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Diff three .uasset files by comparing their uasset_to_text JSON.",
+        description="Diff three .uasset or .umap files by comparing their uasset_to_text JSON.",
     )
     parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {TOOL_VERSION}",
     )
-    parser.add_argument("base", help="Common base .uasset file")
-    parser.add_argument("ours", help="Our changed .uasset file")
-    parser.add_argument("theirs", help="Their changed .uasset file")
+    parser.add_argument("base", help="Common base .uasset or .umap file")
+    parser.add_argument("ours", help="Our changed .uasset or .umap file")
+    parser.add_argument("theirs", help="Their changed .uasset or .umap file")
     parser.add_argument(
         "--keep-paths",
         action="store_true",

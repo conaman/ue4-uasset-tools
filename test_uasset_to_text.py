@@ -146,6 +146,41 @@ def make_test_none_property(names: list[str]) -> bytes:
     return bytes(binary)
 
 
+def make_single_export_package(
+    names: list[str],
+    payload: bytes,
+    *,
+    object_name: str = "MapActor",
+) -> bytes:
+    binary = bytearray(make_minimal_uasset())
+
+    name_offset = len(binary)
+    for name in names:
+        binary.extend(make_test_fstring(name))
+        binary.extend(b"\x00" * 4)  # Name hash data serialized in UE4.27.
+
+    export_offset = len(binary)
+    export_entry_size = 104
+    payload_offset = export_offset + export_entry_size
+
+    binary.extend(struct.pack("<iiii", 0, 0, 0, 0))
+    write_test_name_ref(binary, names, object_name)
+    binary.extend(struct.pack("<I", 0))
+    binary.extend(struct.pack("<qq", len(payload), payload_offset))
+    binary.extend(struct.pack("<III", 0, 0, 0))
+    binary.extend(b"\x00" * 16)
+    binary.extend(struct.pack("<I", 0))
+    binary.extend(struct.pack("<II", 0, 0))
+    binary.extend(struct.pack("<iiiii", 0, 0, 0, 0, 0))
+    assert len(binary) == payload_offset
+    binary.extend(payload)
+
+    struct.pack_into("<i", binary, 24, payload_offset)
+    struct.pack_into("<ii", binary, 36, len(names), name_offset)
+    struct.pack_into("<ii", binary, 56, 1, export_offset)
+    return bytes(binary)
+
+
 def write_fake_p4merge(tool_path: str, log_path: str) -> None:
     script = "\n".join(
         [
@@ -734,6 +769,81 @@ class UAssetParserValidationTests(unittest.TestCase):
 
         self.assertEqual(exports[0]["data_table"], {"row_count": 0, "rows": {}})
 
+    def test_parse_uasset_auto_extracts_map_properties_for_umap(self):
+        names = [
+            "None",
+            "MapActor",
+            "ActorLabel",
+            "StrProperty",
+            "RelativeLocation",
+            "StructProperty",
+            "Vector",
+        ]
+        payload = b"".join(
+            [
+                make_test_property(
+                    names,
+                    "ActorLabel",
+                    "StrProperty",
+                    make_test_fstring("Lamp"),
+                ),
+                make_test_property(
+                    names,
+                    "RelativeLocation",
+                    "StructProperty",
+                    struct.pack("<fff", 1.0, 2.0, 3.0),
+                    struct_name="Vector",
+                ),
+                make_test_none_property(names),
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, "Level.umap")
+            with open(path, "wb") as file:
+                file.write(make_single_export_package(names, payload))
+
+            metadata = uasset.parse_uasset(
+                path,
+                include_export_data=False,
+                preview_bytes=64,
+            )
+
+        self.assertEqual(
+            metadata["exports"][0]["map_properties"],
+            {
+                "ActorLabel": "Lamp",
+                "RelativeLocation": {"X": 1.0, "Y": 2.0, "Z": 3.0},
+            },
+        )
+
+    def test_parse_uasset_does_not_auto_extract_map_properties_for_uasset(self):
+        names = ["None", "MapActor", "ActorLabel", "StrProperty"]
+        payload = b"".join(
+            [
+                make_test_property(
+                    names,
+                    "ActorLabel",
+                    "StrProperty",
+                    make_test_fstring("Lamp"),
+                ),
+                make_test_none_property(names),
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, "Asset.uasset")
+            with open(path, "wb") as file:
+                file.write(make_single_export_package(names, payload))
+
+            metadata = uasset.parse_uasset(
+                path,
+                include_export_data=False,
+                preview_bytes=64,
+            )
+
+        self.assertNotIn("map_properties", metadata["exports"][0])
+
     def test_review_property_parser_extracts_umg_padding(self):
         names = [
             "Padding",
@@ -1258,6 +1368,37 @@ class UAssetParserValidationTests(unittest.TestCase):
             )
 
         self.assertNotIn("names", metadata)
+
+    def test_uasset_diff_reports_umap_map_property_changes(self):
+        names = ["None", "MapActor", "ActorLabel", "StrProperty"]
+
+        def package(label: str) -> bytes:
+            payload = b"".join(
+                [
+                    make_test_property(
+                        names,
+                        "ActorLabel",
+                        "StrProperty",
+                        make_test_fstring(label),
+                    ),
+                    make_test_none_property(names),
+                ]
+            )
+            return make_single_export_package(names, payload)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            left_path = os.path.join(temp_dir, "Before.umap")
+            right_path = os.path.join(temp_dir, "After.umap")
+            with open(left_path, "wb") as file:
+                file.write(package("Before"))
+            with open(right_path, "wb") as file:
+                file.write(package("After"))
+
+            diff_text = uasset_diff.diff_uassets(left_path, right_path, context=2)
+
+        self.assertIn('"map_properties"', diff_text)
+        self.assertIn('-        "ActorLabel": "Before"', diff_text)
+        self.assertIn('+        "ActorLabel": "After"', diff_text)
 
     def test_uasset_diff3_reports_one_sided_change(self):
         with tempfile.TemporaryDirectory() as temp_dir:
