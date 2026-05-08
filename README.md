@@ -1,6 +1,6 @@
 # ue4-uasset-tools
 
-Current release: `2026-04-27`
+Current release: `2026-05-08`
 
 `ue4-uasset-tools` is a small standalone Python toolkit for reviewing Unreal
 Engine 4.27 `.uasset` metadata and UMG widget changes as readable JSON.
@@ -47,6 +47,7 @@ No third-party Python packages are required.
 | Tool | Purpose |
 | --- | --- |
 | `uasset_to_text.py` | Convert `.uasset` to metadata JSON. |
+| `uasset_to_text.bat` | Windows wrapper for `uasset_to_text.py`. |
 | `uasset_umg_summary.py` | Print a UMG WidgetTree hierarchy from a `.uasset` or metadata JSON file. |
 | `uasset_diff.py` | Print a unified 2-way diff between two `.uasset` files. |
 | `uasset_diff3.py` | Print a structured 3-way diff report. |
@@ -61,6 +62,12 @@ Convert a `.uasset` to metadata JSON:
 
 ```bash
 ./uasset_to_text.py /path/to/Asset.uasset
+```
+
+On Windows:
+
+```bat
+uasset_to_text.bat "C:\path\to\Asset.uasset"
 ```
 
 Print a compact UMG WidgetTree summary:
@@ -125,6 +132,15 @@ Common options:
 ./uasset_to_text.py /path/to/Asset.uasset --indent 4
 ./uasset_to_text.py /path/to/Asset.uasset --compact
 ./uasset_to_text.py /path/to/Asset.uasset --no-review-properties
+```
+
+On Windows, use the batch wrapper from the tool folder. Extra options are passed
+through to Python:
+
+```bat
+uasset_to_text.bat "C:\path\to\Asset.uasset"
+uasset_to_text.bat "C:\path\to\Asset.uasset" -o "C:\temp\Asset.json"
+uasset_to_text.bat "C:\path\to\Asset.uasset" --exports-only
 ```
 
 Print a compact export list:

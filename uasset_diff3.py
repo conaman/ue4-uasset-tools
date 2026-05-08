@@ -14,7 +14,7 @@ import uasset_diff
 import uasset_to_text
 
 
-TOOL_VERSION = "2026-04-27"
+TOOL_VERSION = "2026-05-08"
 MISSING = object()
 
 

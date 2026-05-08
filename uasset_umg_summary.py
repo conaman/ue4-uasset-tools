@@ -15,7 +15,7 @@ from typing import Any
 import uasset_to_text
 
 
-TOOL_VERSION = "2026-04-27"
+TOOL_VERSION = "2026-05-08"
 
 UMG_CLASS_PREFIX = "/Script/UMG."
 UMG_EDITOR_CLASS_PREFIX = "/Script/UMGEditor."

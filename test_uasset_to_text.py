@@ -17,7 +17,7 @@ import uasset_umg_summary
 import uasset_to_text as uasset
 
 
-TOOL_VERSION = "2026-04-27"
+TOOL_VERSION = "2026-05-08"
 
 
 def make_summary(**overrides):

@@ -16,7 +16,7 @@ import uasset_p4_common
 import uasset_to_text
 
 
-TOOL_VERSION = "2026-04-27"
+TOOL_VERSION = "2026-05-08"
 
 P4MERGE_EXECUTABLE_PATHS = (
     "/Applications/p4merge.app/Contents/Resources/launchp4merge",
