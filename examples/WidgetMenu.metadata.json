@@ -1452,7 +1452,15 @@
       "path": "WidgetMenu_C.ComponentDelegateBinding_2",
       "class": "/Script/Engine.ComponentDelegateBinding",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "ComponentDelegateBindings": {
+          "_inner_type": "StructProperty",
+          "_count": 2,
+          "_unparsed": true,
+          "_raw_hex": "02 00 00 00 30 00 00 00 00 00 00 00 af 00 00 00 00 00 00 00 d6 00 00 00 00 00 00 00 17 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 31 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 9a 00 00 00 00 00 00 00 3e 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 8a 00 00 00 00 00 00 00 61 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 1c 00 00 00 00 00 00 00 84 00 00 00 00 00 00 00 31 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 5c 00 00 00 00 00 00 00 3e 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 8a 00 00 00 00 00 00 00 61 00 00 00 00 00 00 00 7c 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 1b 00 00 00 00 00 00 00 84 00 00 00 00 00 00 00"
+        }
+      }
     },
     {
       "index": 13,
@@ -1499,7 +1507,23 @@
       "path": "WidgetMenu.EventGraph",
       "class": "/Script/Engine.EdGraph",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "Schema": "/Script/BlueprintGraph.EdGraphSchema_K2",
+        "Nodes": [
+          "WidgetMenu.EventGraph.K2Node_Event_0",
+          "WidgetMenu.EventGraph.K2Node_Event_1",
+          "WidgetMenu.EventGraph.K2Node_Event_2",
+          "WidgetMenu.EventGraph.K2Node_ComponentBoundEvent_0",
+          "WidgetMenu.EventGraph.K2Node_ComponentBoundEvent_1",
+          "WidgetMenu.EventGraph.K2Node_CallFunction_0",
+          "WidgetMenu.EventGraph.K2Node_CallFunction_1",
+          "WidgetMenu.EventGraph.EdGraphNode_Comment_6",
+          "WidgetMenu.EventGraph.EdGraphNode_Comment_7"
+        ],
+        "bAllowDeletion": false,
+        "GraphGuid": "e4b0ca09-4149-7f0f-e7b9-90a74059970c"
+      }
     },
     {
       "index": 14,
@@ -1546,7 +1570,24 @@
       "path": "WidgetMenu.EventGraph.EdGraphNode_Comment_6",
       "class": "/Script/UnrealEd.EdGraphNode_Comment",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "CommentColor": {
+          "R": 0.03434000164270401,
+          "G": 0.03434000164270401,
+          "B": 0.03434000164270401,
+          "A": 1.0
+        },
+        "bCommentBubbleVisible_InDetailsPanel": false,
+        "NodePosX": -48,
+        "NodePosY": 589,
+        "NodeWidth": 592,
+        "NodeHeight": 256,
+        "bCommentBubblePinned": false,
+        "bCommentBubbleVisible": false,
+        "NodeComment": "RestartButton - Open VRTemplate Map",
+        "NodeGuid": "8cbc4ad9-40ce-dc05-d1bc-0eb0604bb6a6"
+      }
     },
     {
       "index": 15,
@@ -1593,7 +1634,24 @@
       "path": "WidgetMenu.EventGraph.EdGraphNode_Comment_7",
       "class": "/Script/UnrealEd.EdGraphNode_Comment",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "CommentColor": {
+          "R": 0.03434000164270401,
+          "G": 0.03434000164270401,
+          "B": 0.03434000164270401,
+          "A": 1.0
+        },
+        "bCommentBubbleVisible_InDetailsPanel": false,
+        "NodePosX": -48,
+        "NodePosY": 928,
+        "NodeWidth": 592,
+        "NodeHeight": 288,
+        "bCommentBubblePinned": false,
+        "bCommentBubbleVisible": false,
+        "NodeComment": "ExitButton - Quit Game",
+        "NodeGuid": "a7451cee-4d7a-f3f0-d898-fbaef602e1d3"
+      }
     },
     {
       "index": 16,
@@ -1781,7 +1839,17 @@
       "path": "WidgetMenu.EventGraph.K2Node_CallFunction_0",
       "class": "/Script/BlueprintGraph.K2Node_CallFunction",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "FunctionReference": {
+          "MemberParent": "/Script/Engine.GameplayStatics",
+          "MemberName": "OpenLevel"
+        },
+        "NodePosX": 256,
+        "NodePosY": 672,
+        "AdvancedPinDisplay": "ENodeAdvancedPins::Hidden",
+        "NodeGuid": "3ce9467f-4ab4-c5e2-c0f6-018bb3773553"
+      }
     },
     {
       "index": 20,
@@ -1828,7 +1896,16 @@
       "path": "WidgetMenu.EventGraph.K2Node_CallFunction_1",
       "class": "/Script/BlueprintGraph.K2Node_CallFunction",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "FunctionReference": {
+          "MemberParent": "/Script/Engine.KismetSystemLibrary",
+          "MemberName": "QuitGame"
+        },
+        "NodePosX": 240,
+        "NodePosY": 992,
+        "NodeGuid": "ded9a8a9-4d69-88d6-06f6-e0a4ed40d9a2"
+      }
     },
     {
       "index": 21,
@@ -1875,7 +1952,25 @@
       "path": "WidgetMenu.EventGraph.K2Node_ComponentBoundEvent_0",
       "class": "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "DelegatePropertyName": "OnClicked",
+        "DelegateOwnerClass": "/Script/UMG.Button",
+        "ComponentPropertyName": "RestartButton",
+        "DelegatePropertyDisplayName": {
+          "source": "On Clicked",
+          "namespace": "UObjectDisplayNames",
+          "key": "Button:OnClicked"
+        },
+        "EventReference": {
+          "MemberParent": "/Script/UMG",
+          "MemberName": "OnButtonClickedEvent__DelegateSignature"
+        },
+        "bInternalEvent": true,
+        "CustomFunctionName": "BndEvt__WidgetMenu_RestartButton_K2Node_ComponentBoundEvent_0_OnButtonClickedEvent__DelegateSignature",
+        "NodePosY": 672,
+        "NodeGuid": "ad5a1eff-4c82-31c8-e058-5fa21079615b"
+      }
     },
     {
       "index": 22,
@@ -1922,7 +2017,25 @@
       "path": "WidgetMenu.EventGraph.K2Node_ComponentBoundEvent_1",
       "class": "/Script/BlueprintGraph.K2Node_ComponentBoundEvent",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "DelegatePropertyName": "OnClicked",
+        "DelegateOwnerClass": "/Script/UMG.Button",
+        "ComponentPropertyName": "ExitButton",
+        "DelegatePropertyDisplayName": {
+          "source": "On Clicked",
+          "namespace": "UObjectDisplayNames",
+          "key": "Button:OnClicked"
+        },
+        "EventReference": {
+          "MemberParent": "/Script/UMG",
+          "MemberName": "OnButtonClickedEvent__DelegateSignature"
+        },
+        "bInternalEvent": true,
+        "CustomFunctionName": "BndEvt__WidgetMenu_ExitButton_K2Node_ComponentBoundEvent_1_OnButtonClickedEvent__DelegateSignature",
+        "NodePosY": 992,
+        "NodeGuid": "99c1c350-4353-07f4-29b7-06b44bdbe77d"
+      }
     },
     {
       "index": 23,
@@ -1969,7 +2082,19 @@
       "path": "WidgetMenu.EventGraph.K2Node_Event_0",
       "class": "/Script/BlueprintGraph.K2Node_Event",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "EventReference": {
+          "MemberParent": "/Script/UMG.UserWidget",
+          "MemberName": "PreConstruct"
+        },
+        "bOverrideFunction": true,
+        "EnabledState": "ENodeEnabledState::Disabled",
+        "bCommentBubblePinned": true,
+        "bCommentBubbleVisible": true,
+        "NodeComment": "This node is disabled and will not be called.\nDrag off pins to build functionality.",
+        "NodeGuid": "80fe7d13-462e-b114-f50b-b0a6f968f213"
+      }
     },
     {
       "index": 24,
@@ -2016,7 +2141,20 @@
       "path": "WidgetMenu.EventGraph.K2Node_Event_1",
       "class": "/Script/BlueprintGraph.K2Node_Event",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "EventReference": {
+          "MemberParent": "/Script/UMG.UserWidget",
+          "MemberName": "Construct"
+        },
+        "bOverrideFunction": true,
+        "NodePosY": 208,
+        "EnabledState": "ENodeEnabledState::Disabled",
+        "bCommentBubblePinned": true,
+        "bCommentBubbleVisible": true,
+        "NodeComment": "This node is disabled and will not be called.\nDrag off pins to build functionality.",
+        "NodeGuid": "6abdde3c-48fa-f82c-294c-17a9c4280bbd"
+      }
     },
     {
       "index": 25,
@@ -2063,7 +2201,20 @@
       "path": "WidgetMenu.EventGraph.K2Node_Event_2",
       "class": "/Script/BlueprintGraph.K2Node_Event",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "EventReference": {
+          "MemberParent": "/Script/UMG.UserWidget",
+          "MemberName": "Tick"
+        },
+        "bOverrideFunction": true,
+        "NodePosY": 416,
+        "EnabledState": "ENodeEnabledState::Disabled",
+        "bCommentBubblePinned": true,
+        "bCommentBubbleVisible": true,
+        "NodeComment": "This node is disabled and will not be called.\nDrag off pins to build functionality.",
+        "NodeGuid": "c6880848-4adb-0c03-9c25-84b9e14a8c88"
+      }
     },
     {
       "index": 26,
@@ -2894,7 +3045,13 @@
       "path": "Default__WidgetMenu_C",
       "class": "WidgetMenu_C",
       "super": null,
-      "template": null
+      "template": null,
+      "asset_properties": {
+        "UberGraphFrame": {},
+        "DesignSizeMode": "EDesignPreviewSizeMode::Desired",
+        "bHasScriptImplementedTick": false,
+        "bHasScriptImplementedPaint": false
+      }
     },
     {
       "index": 40,

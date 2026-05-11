@@ -23,7 +23,7 @@ PACKAGE_FILE_TAG = 0x9E2A83C1
 PACKAGE_FILE_TAG_SWAPPED = 0xC1832A9E
 PKG_FILTER_EDITOR_ONLY = 0x80000000
 
-TOOL_VERSION = "2026-05-08"
+TOOL_VERSION = "2026-05-12"
 CURRENT_LEGACY_FILE_VERSION = -7
 MAX_ARRAY_COUNT = 10_000_000
 MAX_FSTRING_CODE_UNITS = 1024 * 1024
@@ -779,6 +779,14 @@ def is_umap_path(path: str) -> bool:
     return os.path.splitext(path)[1].lower() == ".umap"
 
 
+def is_uasset_path(path: str) -> bool:
+    return os.path.splitext(path)[1].lower() == ".uasset"
+
+
+def is_asset_property_export(export: dict[str, Any]) -> bool:
+    return not is_umg_export(export) and not is_data_table_export(export)
+
+
 def read_property_tag(
     reader: Reader,
     names: list[str],
@@ -1426,6 +1434,25 @@ def add_map_review_properties(
     )
 
 
+def add_asset_review_properties(
+    data: bytes,
+    summary: dict[str, Any],
+    names: list[str],
+    imports: list[dict[str, Any]],
+    exports: list[dict[str, Any]],
+) -> None:
+    add_tagged_export_properties(
+        data,
+        summary,
+        names,
+        imports,
+        exports,
+        property_key="asset_properties",
+        candidate=is_asset_property_export,
+        require_terminator=True,
+    )
+
+
 def add_data_table_review_data(
     data: bytes,
     summary: dict[str, Any],
@@ -1541,9 +1568,12 @@ def parse_uasset(
     preview_bytes: int,
     include_review_properties: bool = True,
     include_map_properties: bool | None = None,
+    include_asset_properties: bool | None = None,
 ) -> dict[str, Any]:
     if include_map_properties is None:
         include_map_properties = is_umap_path(path)
+    if include_asset_properties is None:
+        include_asset_properties = is_uasset_path(path)
 
     with open(path, "rb") as file:
         data = file.read()
@@ -1560,6 +1590,8 @@ def parse_uasset(
         add_data_table_review_data(data, summary, names, imports, exports)
     if include_map_properties:
         add_map_review_properties(data, summary, names, imports, exports)
+    if include_asset_properties:
+        add_asset_review_properties(data, summary, names, imports, exports)
 
     result: dict[str, Any] = {
         "file": {
@@ -1637,6 +1669,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Do not include best-effort .umap export properties parsed from map export payloads.",
     )
     parser.add_argument(
+        "--no-asset-properties",
+        action="store_true",
+        help="Do not include best-effort generic .uasset export properties parsed from asset payloads.",
+    )
+    parser.add_argument(
         "--exports-only",
         action="store_true",
         help="Only print a compact export list with path, class, super, and is_asset.",
@@ -1676,6 +1713,7 @@ def main(argv: list[str]) -> int:
             preview_bytes=max(0, args.bytes),
             include_review_properties=not args.no_review_properties,
             include_map_properties=False if args.no_map_properties else None,
+            include_asset_properties=False if args.no_asset_properties else None,
         )
         if args.exports_only:
             result = export_summary(result)

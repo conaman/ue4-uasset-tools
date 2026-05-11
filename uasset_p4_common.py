@@ -15,7 +15,7 @@ import uasset_diff
 import uasset_to_text
 
 
-TOOL_VERSION = "2026-05-08"
+TOOL_VERSION = "2026-05-12"
 
 
 class P4ToolError(Exception):

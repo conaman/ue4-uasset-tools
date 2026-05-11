@@ -17,7 +17,7 @@ import uasset_umg_summary
 import uasset_to_text as uasset
 
 
-TOOL_VERSION = "2026-05-08"
+TOOL_VERSION = "2026-05-12"
 
 
 def make_summary(**overrides):
@@ -817,7 +817,7 @@ class UAssetParserValidationTests(unittest.TestCase):
             },
         )
 
-    def test_parse_uasset_does_not_auto_extract_map_properties_for_uasset(self):
+    def test_parse_uasset_auto_extracts_asset_properties_for_uasset(self):
         names = ["None", "MapActor", "ActorLabel", "StrProperty"]
         payload = b"".join(
             [
@@ -843,6 +843,66 @@ class UAssetParserValidationTests(unittest.TestCase):
             )
 
         self.assertNotIn("map_properties", metadata["exports"][0])
+        self.assertEqual(metadata["exports"][0]["asset_properties"], {"ActorLabel": "Lamp"})
+
+    def test_parse_uasset_can_disable_asset_properties(self):
+        names = ["None", "MapActor", "ActorLabel", "StrProperty"]
+        payload = b"".join(
+            [
+                make_test_property(
+                    names,
+                    "ActorLabel",
+                    "StrProperty",
+                    make_test_fstring("Lamp"),
+                ),
+                make_test_none_property(names),
+            ]
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, "Asset.uasset")
+            with open(path, "wb") as file:
+                file.write(make_single_export_package(names, payload))
+
+            metadata = uasset.parse_uasset(
+                path,
+                include_export_data=False,
+                preview_bytes=64,
+                include_asset_properties=False,
+            )
+
+        self.assertNotIn("asset_properties", metadata["exports"][0])
+
+    def test_asset_properties_skip_umg_exports(self):
+        names = ["None", "MapActor", "ActorLabel", "StrProperty"]
+        payload = b"".join(
+            [
+                make_test_property(
+                    names,
+                    "ActorLabel",
+                    "StrProperty",
+                    make_test_fstring("Lamp"),
+                ),
+                make_test_none_property(names),
+            ]
+        )
+        exports = [
+            {
+                "class": "/Script/UMG.Button",
+                "serial_offset": 0,
+                "serial_size": len(payload),
+            }
+        ]
+
+        uasset.add_asset_review_properties(
+            payload,
+            {"effective_file_version_ue4": uasset.VER_UE4_AUTOMATIC_VERSION},
+            names,
+            [],
+            exports,
+        )
+
+        self.assertNotIn("asset_properties", exports[0])
 
     def test_review_property_parser_extracts_umg_padding(self):
         names = [
@@ -1399,6 +1459,37 @@ class UAssetParserValidationTests(unittest.TestCase):
         self.assertIn('"map_properties"', diff_text)
         self.assertIn('-        "ActorLabel": "Before"', diff_text)
         self.assertIn('+        "ActorLabel": "After"', diff_text)
+
+    def test_uasset_diff_reports_uasset_asset_property_changes(self):
+        names = ["None", "MapActor", "Title", "StrProperty"]
+
+        def package(label: str) -> bytes:
+            payload = b"".join(
+                [
+                    make_test_property(
+                        names,
+                        "Title",
+                        "StrProperty",
+                        make_test_fstring(label),
+                    ),
+                    make_test_none_property(names),
+                ]
+            )
+            return make_single_export_package(names, payload)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            left_path = os.path.join(temp_dir, "Before.uasset")
+            right_path = os.path.join(temp_dir, "After.uasset")
+            with open(left_path, "wb") as file:
+                file.write(package("Bronze Sword"))
+            with open(right_path, "wb") as file:
+                file.write(package("Silver Sword"))
+
+            diff_text = uasset_diff.diff_uassets(left_path, right_path, context=2)
+
+        self.assertIn('"asset_properties"', diff_text)
+        self.assertIn('-        "Title": "Bronze Sword"', diff_text)
+        self.assertIn('+        "Title": "Silver Sword"', diff_text)
 
     def test_uasset_diff3_reports_one_sided_change(self):
         with tempfile.TemporaryDirectory() as temp_dir:

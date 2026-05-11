@@ -1,0 +1,28 @@
+{
+  "file": {
+    "path": "local_test_assets/UE427_Data/DA_Sword.uasset",
+    "note": "Focused asset_properties excerpt showing readable generic .uasset export values, such as a UDataAsset-style item definition."
+  },
+  "exports": [
+    {
+      "path": "DA_Sword",
+      "class": "/Script/MyGame.ItemDataAsset",
+      "asset_properties": {
+        "ItemName": {
+          "source": "Sword"
+        },
+        "Damage": 30,
+        "Rarity": "Rare",
+        "Icon": {
+          "asset_path": "/Game/UI/Icons/T_Sword"
+        },
+        "PickupOffset": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 18.0
+        },
+        "bCanStack": false
+      }
+    }
+  ]
+}

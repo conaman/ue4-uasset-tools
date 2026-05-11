@@ -1,14 +1,17 @@
 # ue4-uasset-tools
 
-Current release: `2026-05-08`
+Current release: `2026-05-12`
 
 `ue4-uasset-tools` is a small standalone Python toolkit for reviewing Unreal
-Engine 4.27 `.uasset`/`.umap` metadata, UMG widget changes, and map export
-changes as readable JSON.
+Engine 4.27 `.uasset`/`.umap` metadata, asset property changes, UMG widget
+changes, and map export changes as readable JSON.
 
 It can:
 
 - Convert a `.uasset` or `.umap` file to readable metadata JSON.
+- Extract readable generic `.uasset` export properties, including many
+  `UDataAsset` and `UPrimaryDataAsset` values, when Unreal saved them as tagged
+  properties.
 - Extract UMG review properties such as slot padding, layout data, alignment,
   visibility, colors, widget styling, button/slider state, and custom primitive
   variables.
@@ -19,8 +22,8 @@ It can:
 - Print 2-way and 3-way metadata JSON diffs for `.uasset` and `.umap` files.
 - Open Perforce P4Merge on generated metadata JSON files for visual comparison.
 
-The parser reads UE4.27 package metadata plus supported UMG/map tagged property
-values. It does not link against Unreal Engine.
+The parser reads UE4.27 package metadata plus supported asset/UMG/map tagged
+property values. It does not link against Unreal Engine.
 
 ## Requirements
 
@@ -42,6 +45,8 @@ No third-party Python packages are required.
   font, color, shadow, wrapping, and justification.
 - See custom primitive fields serialized on widgets without maintaining a
   property-name filter.
+- Review UDataAsset values such as item names, numbers, enum selections,
+  soft/object references, and simple structs before accepting a changelist.
 - Review `.umap` changes made by Unreal MCP or another LLM workflow before
   accepting the saved level.
 - Compare binary `.uasset`/`.umap` metadata without launching Unreal Editor.
@@ -115,7 +120,10 @@ Sample outputs generated from a UE4.27 UMG widget asset are available in
 - `WidgetMenu.summary.txt`: UMG WidgetTree summary output.
 - `WidgetMenu.exports.json`: compact export list with path and class fields.
 - `WidgetMenu.metadata.json`: full metadata JSON produced by
-  `uasset_to_text.py`, with the file path shortened for readability.
+  `uasset_to_text.py`, including readable `asset_properties` where generic
+  export payloads can be parsed.
+- `DataAsset.asset_properties.json`: focused `asset_properties` excerpt showing
+  the kind of UDataAsset-style values that can appear in diffs.
 - `WidgetMenu.review_properties.json`: UMG `review_properties` excerpt showing
   every parsed export property and `_raw_hex` for unparsed values.
 - `Snapshot_UI_VR.review_properties.json`: focused UMG `review_properties`
@@ -145,6 +153,7 @@ Common options:
 ./uasset_to_text.py /path/to/Asset.uasset --indent 4
 ./uasset_to_text.py /path/to/Asset.uasset --compact
 ./uasset_to_text.py /path/to/Asset.uasset --no-review-properties
+./uasset_to_text.py /path/to/Asset.uasset --no-asset-properties
 ./uasset_to_text.py /path/to/Level.umap --no-map-properties
 ```
 
@@ -482,7 +491,8 @@ The metadata object can include:
 - `summary`: package file summary fields and version data.
 - `imports`: imported object table with Name references expanded to strings.
 - `exports`: exported object table with Name references expanded to strings and
-  `review_properties` on supported UMG exports or `map_properties` on `.umap`
+  `asset_properties` on readable generic `.uasset` exports,
+  `review_properties` on supported UMG exports, or `map_properties` on `.umap`
   exports when readable payload data is found.
 - `depends`: export dependency map.
 - `soft_package_references`: soft package references.
@@ -515,6 +525,23 @@ When a property is present but its value is not decoded yet, it is kept as
 `_unparsed` with `_raw_hex`. That means the diff can still show that a value
 changed, even when this tool cannot name every field inside that value.
 
+## Asset Review Coverage
+
+When the input path ends in `.uasset`, `asset_properties` is emitted for
+non-UMG exports whose payload starts with a readable tagged property stream.
+This is meant for review-friendly assets such as `UDataAsset`,
+`UPrimaryDataAsset`, and project-specific asset classes that store values as
+normal UPROPERTY tags.
+
+Common values that can appear include bool, int, float, string, text, name,
+enum, object/class references, soft references, vectors, rotators, colors,
+margins, simple nested structs, arrays of supported primitive values, and
+custom primitive fields. UMG exports keep using `review_properties`, so the same
+value is not shown twice.
+
+Use `--no-asset-properties` when you only want package metadata and do not want
+generic asset payload values in the JSON.
+
 ## UMAP Review Coverage
 
 When the input path ends in `.umap`, `map_properties` is emitted for exports
@@ -532,8 +559,9 @@ can be identified.
 
 ## Limitations
 
-This tool focuses on package metadata tables, supported UMG/map tagged property
-values, and visual review diffs. It is not a full UObject property serializer.
+This tool focuses on package metadata tables, supported asset/UMG/map tagged
+property values, and visual review diffs. It is not a full UObject property
+serializer.
 
 Unsupported custom serializers are marked as `_unparsed` with `_raw_hex`
 instead of guessed. Default-valued properties may not appear if Unreal did not
